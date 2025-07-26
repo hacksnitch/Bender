@@ -1,0 +1,11 @@
+_INSTANCE_ = "https://www11.v1host.com/VersionOneMi"
+_RESTENDPOINT_ = "rest-1.v1/Data"
+_AUTOTEST_ = True
+_POLLTIME_ = 5
+_CTR_ = 0
+_TRIG_ = 16 
+_ECHO_ = 18
+_PASSED_ = "TestStatus:129"
+_FAILED_ = "TestStatus:155"
+_CLOSED_ = "TestStatus:1413"
+_ORIGIN_=15
