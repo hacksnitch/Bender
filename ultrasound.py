@@ -1,36 +1,66 @@
 
-#GPIO.setmode(GPIO.BCM)
-GPIO.setmode(GPIO.BOARD)
-#TRIG = 23 
-#ECHO = 24
+"""
+Standalone ultrasonic sensor test script.
+This file is kept for testing sensor functionality independently.
+"""
+import logging
+import time
 
-TRIG = 16
-ECHO = 18
-print "Distance Measurement In Progress"
+try:
+    import RPi.GPIO as GPIO
+except ImportError:
+    print("Warning: RPi.GPIO not available. Running in simulation mode.")
+    GPIO = None
 
-GPIO.setup(TRIG,GPIO.OUT)
-GPIO.setup(ECHO,GPIO.IN)
+from constants import _TRIG_, _ECHO_
 
-GPIO.output(TRIG, False)
-print "Waiting For Sensor To Settle"
-time.sleep(2)
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-GPIO.output(TRIG, True)
-time.sleep(0.00001)
-GPIO.output(TRIG, False)
 
-while GPIO.input(ECHO)==0:
-  pulse_start = time.time()
+def test_ultrasonic_sensor():
+    """Test ultrasonic sensor independently."""
+    if GPIO is None:
+        logger.warning("GPIO not available, cannot test sensor")
+        return
+    
+    try:
+        logger.info("Starting ultrasonic sensor test")
+        
+        GPIO.setmode(GPIO.BOARD)
+        GPIO.setup(_TRIG_, GPIO.OUT)
+        GPIO.setup(_ECHO_, GPIO.IN)
 
-while GPIO.input(ECHO)==1:
-  pulse_end = time.time()
+        GPIO.output(_TRIG_, False)
+        logger.info("Waiting for sensor to settle...")
+        time.sleep(2)
 
-pulse_duration = pulse_end - pulse_start
+        # Send trigger pulse
+        GPIO.output(_TRIG_, True)
+        time.sleep(0.00001)
+        GPIO.output(_TRIG_, False)
 
-distance = pulse_duration * 17150
+        # Measure echo timing
+        while GPIO.input(_ECHO_) == 0:
+            pulse_start = time.time()
 
-distance = round(distance, 2)
+        while GPIO.input(_ECHO_) == 1:
+            pulse_end = time.time()
 
-print "Distance:",distance,"cm"
+        # Calculate distance
+        pulse_duration = pulse_end - pulse_start
+        distance = pulse_duration * 17150
+        distance = round(distance, 2)
 
-GPIO.cleanup()
+        logger.info(f"Distance: {distance}cm")
+        
+    except Exception as e:
+        logger.error(f"Error during sensor test: {e}")
+    finally:
+        if GPIO:
+            GPIO.cleanup()
+            logger.info("GPIO cleanup complete")
+
+
+if __name__ == "__main__":
+    test_ultrasonic_sensor()
